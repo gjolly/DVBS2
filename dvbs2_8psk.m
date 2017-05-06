@@ -1,17 +1,8 @@
-close all;
-clear all;
-clc;
+function TEB = dvbs2_8psk(nbFrame, LDPCRate, roff, EbNo)
 
 %% Parameters
 modOrd = 8; % Modulation order
 bitPerSymbol = log2(modOrd); % Nombre de bits par symbole 
-frameSize = 64800; % Dvbs2 frame size (bits)
-nbSymb = 2000; %Nombre de symboles à générer
-roff = 0.35; % Rolloff shape filter
-nbsamples = 8; % Samples per symbols
-LDPCRate = 3/4;
-nbFrame = 10; % number of frame to send
-EbNo = 2; % Eb/No
 RowInterleave = 21600;
 ColumnInterleave = 3;
 
@@ -50,23 +41,27 @@ errorRate = comm.ErrorRate;
 
 %% Simulation
 for frame = 1:nbFrame
-    data                = randi([0 1], kBCH,1);
-    BCHEncodedData      = step(BCHEncoder, data);
-    LDPCEncodedData     = step(LDPCEncoder, BCHEncodedData);
-    interleavedData     = matintrlv(LDPCEncodedData, ColumnInterleave, RowInterleave);
-    modData             = step(pskModulator, interleavedData);
-    %modDataZP          = [modData; zeros(delay, 1)];
-    %filterData         = step(txfilter, modDataZP);
-    channelOutput       = step(channel, modData);
-    %filterDataReceiver = step(rxfilter, channelOutput);
-    demodulatedData     = step(demodulator, channelOutput);
-    deinterleavedData   = matintrlv(demodulatedData, RowInterleave, ColumnInterleave);
-    LDPCDecodedData     = step(LDPCDecoder, deinterleavedData);
-    BCHDecodedData      = step(BCHDecoder, LDPCDecodedData);
-    errorStats          = step(errorRate, logical(data), BCHDecodedData);
+    data                  = randi([0 1], kBCH,1); % Data generation
+    BCHEncodedData        = step(BCHEncoder, data); % BCH encoding
+    LDPCEncodedData       = step(LDPCEncoder, BCHEncodedData); % LDCP encoding
+    interleavedData       = matintrlv(LDPCEncodedData, ColumnInterleave, RowInterleave); % Interleaving
+    modData               = step(pskModulator, interleavedData); % Mapping 
+    modDataZP             = [modData; zeros(delay, 1)]; % Zero padding 
+    filteredData          = step(txfilter, modDataZP); % Pulse shaping filter
+    channelOutput         = step(channel, filteredData); % Channel 
+    filteredReceivedData  = step(rxfilter, channelOutput); % Adaptated filter
+    demodulatedData       = step(demodulator, filteredReceivedData(delay+1:end)); % Demapping
+    deinterleavedData     = matintrlv(demodulatedData, RowInterleave, ColumnInterleave); % Deinterleaving
+    LDPCDecodedData       = step(LDPCDecoder, deinterleavedData); % LDPC decoding
+    BCHDecodedData        = step(BCHDecoder, LDPCDecodedData); % BCH decoding
+    errorStats            = step(errorRate, logical(data), BCHDecodedData); % BER computing
 end
+
+TEB = errorStats(1);
 
 %% View
 %scatterplot(modData)
 %scatterplot(filterDataReceiver(delay+1:end))
-fprintf('Error rate       = %1.2f\nNumber of errors = %d\n', errorStats(1), errorStats(2))
+%fprintf('Error rate       = %1.2f\nNumber of errors = %d\n', errorStats(1), errorStats(2))
+
+end

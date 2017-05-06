@@ -1,4 +1,4 @@
-function TEB = dvbs2_16apsk(nbFrame, LDPCRate, roff, EbNo)
+function TEB = dvbs2_32apsk(nbFrame, LDPCRate, roff, EbNo)
 
 %% Parameters
 modOrd = 16; % Modulation order
@@ -15,7 +15,7 @@ parityCheckMatrix = dvbs2ldpc(LDPCRate);
 LDPCEncoder = comm.LDPCEncoder('ParityCheckMatrix', parityCheckMatrix);
 
 %% Modulation
-gamma = gamma_dvbs2(LDPCRate, '16APSK');
+gamma = gamma_dvbs2(LDPCRate, '32APSK');
 
 %% shape filter emetter
 txfilter = comm.RaisedCosineTransmitFilter('RolloffFactor', roff);
@@ -38,16 +38,16 @@ errorRate = comm.ErrorRate;
 
 %% Simulation
 for frame = 1:nbFrame
-    data                   = randi([0 1], kBCH,1); % Data generation
+    data                  = randi([0 1], kBCH,1); % Data generation
     BCHEncodedData        = step(BCHEncoder, data); % BCH encoding
     LDPCEncodedData       = step(LDPCEncoder, BCHEncodedData); % LDCP encoding
     interleavedData       = matintrlv(LDPCEncodedData, ColumnInterleave, RowInterleave); % Interleaving
-    modData               = mod_16apsk(interleavedData, gamma); % Mapping 
+    modData               = mod_32apsk(interleavedData, gamma);
     modDataZP             = [modData; zeros(delay, 1)]; % Zero padding 
     filteredData          = step(txfilter, modDataZP); % Pulse shaping filter
     channelOutput         = step(channel, filteredData); % Channel
     filteredReceivedData  = step(rxfilter, channelOutput); % Adaptated filter
-    demodulatedData       = demod_16apskllr(filteredReceivedData(delay+1:end), gamma); % Demapping
+    demodulatedData       = demod_32apskllr(filteredReceivedData(delay+1:end), gamma); % Demapping
     deinterleavedData     = matintrlv(demodulatedData, RowInterleave, ColumnInterleave); % Deinterleaving
     LDPCDecodedData       = step(LDPCDecoder, deinterleavedData); % LDPC decoding
     BCHDecodedData        = step(BCHDecoder, LDPCDecodedData); % BCH decoding
@@ -58,7 +58,7 @@ TEB = errorStats(1);
 
 %% View
 %scatterplot(modData)
-%scatterplot(filteredReceivedData(delay+1:end))
-fprintf('Error rate       = %1.2f\nNumber of errors = %d\n', errorStats(1), errorStats(2))
+%scatterplot(filterDataReceiver(delay+1:end))
+%fprintf('Error rate       = %1.2f\nNumber of errors = %d\n', errorStats(1), errorStats(2))
 
 end
