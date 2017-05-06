@@ -5,7 +5,6 @@ clc;
 %% Parameters
 modOrd = 16; % Modulation order
 bitPerSymbol = log2(modOrd); % Nombre de bits par symbole 
-frameSize = 64800; % Dvbs2 frame size (bits)
 nbSymb = 2000; %Nombre de symboles à générer
 roff = 0.35; % Rolloff shape filter
 nbsamples = 8; % Samples per symbols
@@ -16,13 +15,12 @@ RowInterleave = 16200;
 ColumnInterleave = 4;
 
 %% BCH encoder
-[k, n] = BCHCoeffs(LDPCRate);
-BCHEncoder = comm.BCHEncoder(k, n);
+[kBCH, nBCH] = BCHCoeffs(LDPCRate);
+BCHEncoder = comm.BCHEncoder(nBCH, kBCH);
 
 %% LDPC encoder
 parityCheckMatrix = dvbs2ldpc(LDPCRate);
 LDPCEncoder = comm.LDPCEncoder('ParityCheckMatrix', parityCheckMatrix);
-
 
 %% Modulation
 gamma = gamma_dvbs2(LDPCRate);
@@ -43,14 +41,18 @@ demodulator = comm.PSKDemodulator(modOrd, 'BitOutput',true, 'DecisionMethod','Ap
 %% LDPC decoder
 LDPCDecoder = comm.LDPCDecoder('ParityCheckMatrix', parityCheckMatrix);
 
+%% BCH decoder
+BCHDecoder = comm.BCHDecoder(nBCH, kBCH);
+
 %% Error rate
 errorRate = comm.ErrorRate;
 
 %% Simulation
 for frame = 1:nbFrame
-    data                = randi([0 1], LDPCRate*frameSize,1);
-    encodedData         = step(LDPCEncoder, data);
-    interleavedData     = matintrlv(encodedData, ColumnInterleave, RowInterleave);
+    data                = randi([0 1], kBCH,1);
+    BCHEncodedData      = step(BCHEncoder, data);
+    LDPCEncodedData     = step(LDPCEncoder, BCHEncodedData);
+    interleavedData     = matintrlv(LDPCEncodedData, ColumnInterleave, RowInterleave);
     modData             = mod_16apsk(interleavedData, gamma);
     %modDataZP          = [modData; zeros(delay, 1)];
     %filterData         = step(txfilter, modDataZP);
@@ -58,8 +60,9 @@ for frame = 1:nbFrame
     %filterDataReceiver = step(rxfilter, channelOutput);
     demodulatedData     = demod_16apskllr(channelOutput, gamma);
     deinterleavedData   = matintrlv(demodulatedData, RowInterleave, ColumnInterleave);
-    receivedBits        = step(LDPCDecoder, deinterleavedData);
-    errorStats          = step(errorRate, logical(data), receivedBits);
+    LDPCDecodedData     = step(LDPCDecoder, deinterleavedData);
+    BCHDecodedData      = step(BCHDecoder, LDPCDecodedData);
+    errorStats          = step(errorRate, logical(data), BCHDecodedData);
 end
 
 %% View
