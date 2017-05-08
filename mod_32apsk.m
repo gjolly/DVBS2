@@ -24,5 +24,4 @@ for i=1:length(mapp)
 end 
 
 % The stream of 32apsk constellation symbols 
-y = symb';
-end
+y = symb.';

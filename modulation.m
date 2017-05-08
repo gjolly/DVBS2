@@ -1,4 +1,4 @@
-function y = mod_16apsk(bits,gamma)
+function y = modulation(bits, modOrd, gamma)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Mdulates the stream of input bits according to the 16apsk mapping
 % defined for a certain gamma value. 
@@ -9,11 +9,13 @@ function y = mod_16apsk(bits,gamma)
 %     y : The stream of 16apsk modulated symbols
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+bitsPerSymbol = log2(modOrd);
+
 % Constellation and 16APSK bitMapping  
-[constellation, bitMapping] = DVBS2Constellation('16APSK',gamma); 
+[constellation, bitMapping] = DVBS2Constellation(modOrd,gamma); 
 
 % Converting bits into decimal values for mapping 
-matx = reshape(bits,4,length(bits)/4)'; 
+matx = reshape(bits, bitsPerSymbol,length(bits)/bitsPerSymbol)'; 
 mapp =  bi2de(fliplr(matx),2)';  
 symb= zeros(1,length(mapp)); 
 

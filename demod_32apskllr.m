@@ -16,7 +16,7 @@ function y = demod_32apskllr(symb,gamma)
 N=length(symb);
 bitextention=fliplr(de2bi(bitMapping));
 
-llr=zeros(4,N);
+llr=zeros(5,N);
 for n=1:N
     pyx=exp(-abs(symb(n)-constellation).^2);
     for ii=1:5

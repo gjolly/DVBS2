@@ -35,23 +35,23 @@
 % Permission is granted to use this program/data for educational/research
 % only
 
-function [constellation, mapping] = DVBS2Constellation(ModScheme,varargin)
+function [constellation, mapping] = DVBS2Constellation(modOrd,varargin)
 
-if ischar(ModScheme)
-    switch lower(ModScheme)
-        case 'qpsk'
+if any(modOrd == [4 8 16 32])
+    switch modOrd
+        case 4
             R = 1; % radius
             M = 4; % modulation order
             phi0 = pi/4;
             mapping = [0,2,3,1];
             
-        case '8psk'
+        case 8
             R = 1;
             M = 8;
             phi0 = pi/4;
             mapping = [0,4,6,2,3,7,5,1];
             
-        case '16apsk'
+        case 16
             if nargin ==2
                 if isscalar(varargin(1))
                     gamma = varargin{1};
@@ -65,7 +65,7 @@ if ischar(ModScheme)
             else
                 error('GAMMA is missing!')
             end      
-        case '32apsk'
+        case 32
             if nargin ==2
                 if length(varargin{1})==2
                     gamma = varargin{1};
@@ -85,7 +85,7 @@ if ischar(ModScheme)
             error(['Valid constellation schemes are QPSK, 8PSK, 16APSK and 32APSK!'])
     end
 else
-    error('First input must be char!')
+    error('First input must be 4, 8, 16 or 32!')
 end
 
 constellation =[];
