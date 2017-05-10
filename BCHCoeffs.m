@@ -1,17 +1,21 @@
 function [k, n] = BCHCoeffs(LDPCRate)
-if LDPCRate == 2/3
-    k = 43040;
-    n = 43200;
-elseif LDPCRate == 3/4
-    k = 48408;
-    n = 48600;
-elseif LDPCRate == 5/6
-    k = 53840;
-    n = 54000;
-elseif LDPCRate == 8/9 
-    k = 57472;
-    n = 57600;
-else
-    k = 0;
-    n = 0;
+switch LDPCRate
+    case 1/2
+        k = 32208;
+        n = 32400;
+    case 2/3
+        k = 43040;
+        n = 43200;
+    case 3/4
+        k = 48408;
+        n = 48600;
+    case 5/6
+        k = 53840;
+        n = 54000;
+    case 8/9 
+        k = 57472;
+        n = 57600;
+    otherwise
+        k = 0;
+        n = 0;
 end 
