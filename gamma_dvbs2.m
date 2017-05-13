@@ -6,6 +6,8 @@ elseif modOrd == 16
         g = 3.1;
     elseif rate == 3/4
         g = 2.85;
+    elseif rate == 4/5
+        g = 2.75;
     elseif rate == 5/6
         g = 2.6;
     elseif rate == 8/9 
@@ -15,6 +17,8 @@ elseif modOrd == 16
 elseif modOrd == 32
     if rate == 3/4
         g = [2.84 5.27];
+    elseif rate == 4/5
+        g = [2.72, 4.87];
     elseif rate == 5/6
         g = [2.64 4.64];
     elseif rate == 9/10 

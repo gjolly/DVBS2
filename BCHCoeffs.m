@@ -9,6 +9,9 @@ switch LDPCRate
     case 3/4
         k = 48408;
         n = 48600;
+    case 4/5
+        k = 51648;
+        n = 51840;
     case 5/6
         k = 53840;
         n = 54000;

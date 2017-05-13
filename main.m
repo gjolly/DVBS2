@@ -1,23 +1,26 @@
+clear all;
+close all;
 
 %% Simulation parameters
 modulationOrder = 4; % 4 = QPSK, 8 = 8PSK, 16 = 16APSK, 32 = 32APSK
-nbFrame = 50; % Number of frames that will be send
-LDPCRate = 1/2; % Be sure that the rate exist for the specified modulation
+nbFrameMin = 10; % Number of frames that will be send
+nbFrameMax = 50;
+LDPCRate = 4/5; % Be sure that the rate exist for the specified modulation
 roff = 0.35; % Roll-off of the pulse shaping filter
-EsNoPas = 2; % Variable of the simutaion, can be the modulation order, Es/No or the LDPC rate
+EsNo = 4:5; % Variable of the simutaion, can be the modulation order, Es/No or the LDPC rate
 
 %% Simutations
-Xsize = length(EsNoPas);
+Xsize = length(EsNo);
 BER = zeros(1, Xsize);
-i = 1;
-previousBER = 1; % use for the end condition
+nbFrame = nbFrameMin;
 
-while i <= Xsize && previousBER > 0
-    EbNo = EsNoPas(i);
-    BER(i) = dvbs2(modulationOrder, nbFrame, LDPCRate, roff, EbNo);
-    previousBER = BER(i);
-    i = i + 1;
+for i_EsNo = 1:Xsize 
+    nbIncorrectFrames = 0;
+    while nbIncorrectFrames < 10 && nbFrame < nbFrameMax
+        [BER(i_EsNo), nbIncorrectFrames] = dvbs2(modulationOrder, nbFrame, LDPCRate, roff, EsNo(i_EsNo));
+        nbFrame = nbFrame + 5;
+    end
 end
-plotBER(modulationOrder, EsNoPas, LDPCRate, roff, BER);
+%plotBER(modulationOrder, EsNo, LDPCRate, roff, BER);
 
-save 'results.mat' 'BER'; 
+save 'results.mat' 'BER' 'EsNo' 'roff' 'LDPCRate' 'modulationOrder';
