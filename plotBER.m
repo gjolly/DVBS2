@@ -11,7 +11,7 @@ function plotBER(modOrd, EbNoPas, LDPCRate, roff, TEB)
             modulation = '32APSK';
     end
 
-    semilogy(EbNoPas, TEB, '+');
+    semilogy(EbNoPas, TEB);
     legend(modulation);
         
     grid on;
