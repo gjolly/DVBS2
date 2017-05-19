@@ -1,4 +1,4 @@
-function TEB = dvbs2(modOrd, nbFrame, LDPCRate, roff, EsNo)
+function [TEB, nbIncorrectFrames] = dvbs2(modOrd, nbFrame, LDPCRate, roff, EsNo)
 
 %% Parameters
 bitPerSymbol = log2(modOrd); % Nombre de bits par symbole 
@@ -31,8 +31,9 @@ LDPCDecoder = comm.LDPCDecoder('ParityCheckMatrix', parityCheckMatrix, 'Iteratio
 %% BCH decoder
 BCHDecoder = comm.BCHDecoder(nBCH, kBCH);
 
-%% Error rate
-errorRate = comm.ErrorRate;
+%% Error rateuntitled
+%errorRate = comm.ErrorRate;
+nbErrorsFrame = zeros(1, nbFrame);
 
 %% Simulation
 for frame = 1:nbFrame
@@ -49,10 +50,11 @@ for frame = 1:nbFrame
     deinterleavedData     = matintrlv(demodulatedData, RowInterleave, ColumnInterleave); % Deinterleaving
     LDPCDecodedData       = step(LDPCDecoder, deinterleavedData); % LDPC decoding
     BCHDecodedData        = step(BCHDecoder, LDPCDecodedData); % BCH decoding
-    errorStats            = step(errorRate, logical(data), BCHDecodedData); % BER computing
+    nbErrorsFrame(frame)  = sum(data ~= BCHDecodedData);
 end
 
-TEB = errorStats(1);
+nbIncorrectFrames = sum(nbErrorsFrame>0);
+TEB = sum(nbErrorsFrame)/(kBCH*nbFrame);
 
 %% View
 %scatterplot(modData)
