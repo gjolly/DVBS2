@@ -31,7 +31,7 @@ LDPCDecoder = comm.LDPCDecoder('ParityCheckMatrix', parityCheckMatrix, 'Iteratio
 %% BCH decoder
 BCHDecoder = comm.BCHDecoder(nBCH, kBCH);
 
-%% Error rate
+%% Error rateuntitled
 %errorRate = comm.ErrorRate;
 nbErrorsFrame = zeros(1, nbFrame);
 
